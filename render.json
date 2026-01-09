@@ -1,0 +1,19 @@
+{
+  "name": "Hierarchical RAG System",
+  "description": "AI-powered petroleum well data analysis with borehole priority filtering",
+  "keywords": ["rag", "petroleum", "embeddings", "gemini"],
+  "buildCommand": "pip install -r requirements.txt",
+  "startCommand": "python3 -m waitress --port=$PORT --host=0.0.0.0 --threads=4 wsgi:app",
+  "env": [
+    {
+      "key": "GEMINI_API_KEY",
+      "value": "",
+      "description": "Google Gemini API key for answer generation"
+    },
+    {
+      "key": "PYTHONUNBUFFERED",
+      "value": "1"
+    }
+  ],
+  "plan": "free"
+}
