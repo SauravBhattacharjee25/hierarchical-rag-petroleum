@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoHackathon 2025 | Team Conquerers</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* GeoHackathon 2025 Official Colors */
+            --geo-blue: #005FAA;
+            /* Primary SPE Blue from header */
+            --geo-blue-dark: #003D6B;
+            /* Darker blue for depth */
+            --geo-blue-light: #0078D4;
+            /* Lighter blue for accents */
+
+            --geo-gold: #FFB81C;
+            /* Official SPE Gold */
+            --geo-gold-dark: #D99A00;
+            /* Darker gold for text */
+
+            --bg-darker: #001F3F;
+            /* Deep navy background */
+            --bg-dark: #003D6B;
+            /* Blue-tinted dark */
+            --bg-card: #004177;
+            /* Card background */
+            --bg-card-hover: #005FAA;
+            /* Hover state */
+
+            --text-main: #ffffff;
+            --text-muted: #B0C4DE;
+            /* Light steel blue */
+            --text-gold: #FFB81C;
+
+            --border: #005FAA;
+            --success: #00C853;
+            --error: #FF5252;
+
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, #001F3F 0%, #003D6B 50%, #005FAA 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects - GeoHackathon Style */
+        .bg-glow {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 50%, rgba(255, 184, 28, 0.06) 0%, transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(0, 95, 170, 0.08) 0%, transparent 30%),
+                url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gMTAwIDAgTCAwIDAgMCAxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');
+            pointer-events: none;
+        }
+
+        /* Header - GeoHackathon Official Style */
+        header {
+            background: var(--geo-blue);
+            border-bottom: 3px solid var(--geo-gold);
+            padding: 0.75rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-logo {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-tag {
+            font-size: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .team-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .card-icon {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        /* Status Bar */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .status-item {
+            background: var(--bg-dark);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .status-value {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Upload Area */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-dark);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Query Modes */
+        .mode-selector {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-dark);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .mode-option.active {
+            background: var(--bg-card);
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+        }
+
+        /* Results Area */
+        .results-area {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .answer-card {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 41, 59, 0) 100%);
+            border: 1px solid var(--primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .answer-title {
+            color: var(--primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .borehole-badge {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .answer-content {
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        /* Documents List */
+        .doc-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .doc-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .doc-item:hover {
+            transform: translateX(4px);
+            border-color: var(--text-muted);
+        }
+
+        .doc-rank {
+            background: var(--bg-dark);
+            color: var(--text-muted);
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .doc-content {
+            flex: 1;
+        }
+
+        .doc-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .doc-filename {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .doc-score {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .doc-snippet {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .image-tag {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+            <aside>< !-- Status Panel --><div class="card"><div class="card-header"><span class="card-icon">📊</span><h2 class="card-title">System Status</h2></div><div class="status-grid"><div class="status-item"><div class="status-value" id="totalWells">-</div><div class="status-label">Wells</div></div><div class="status-item"><div class="status-value" id="totalChunks">-</div><div class="status-label">Chunks</div></div><div class="status-item"><div class="status-value" id="imageChunks">-</div><div class="status-label">Images</div></div><div class="status-item"><div class="status-value" id="geminiStatus">-</div><div class="status-label">AI Engine</div></div></div></div>< !-- Upload Panel --><div class="card"><div class="card-header"><span class="card-icon">📤</span><h2 class="card-title">Ingest Data</h2></div>< !-- Upload Mode Toggle --><div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; background: var(--bg-dark); padding: 0.25rem; border-radius: 0.5rem;"><div class="mode-option active" id="folderModeBtn" onclick="setUploadMode('folder')"
+            style="flex: 1; text-align: center; padding: 0.5rem; font-size: 0.875rem; cursor: pointer; border-radius: 0.375rem;">📁 Upload Folder </div><div class="mode-option" id="filesModeBtn" onclick="setUploadMode('files')"
+            style="flex: 1; text-align: center; padding: 0.5rem; font-size: 0.875rem; cursor: pointer; border-radius: 0.375rem; color: var(--text-muted);">📄 Select Files </div></div><div class="form-group"><input type="text" id="wellName" placeholder="Enter Well Name (e.g., Well 1)"></div><div class="upload-zone" id="uploadZone"><div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div><div style="font-weight: 500; margin-bottom: 0.25rem;" id="uploadZoneTitle">Select Well Folder</div><div style="font-size: 0.75rem; color: var(--text-muted);" id="uploadZoneSubtitle">Click to browse folders</div></div><input type="file" id="fileInput" webkitdirectory directory multiple style="display: none;"><div id="selectedFiles"
+            style="margin: 1rem 0; font-size: 0.875rem; color: var(--text-muted); display: none;">0 files selected </div><button class="btn btn-primary" id="uploadBtn" onclick="uploadWell()" style="margin-top: 1rem;"><span class="spinner" id="uploadSpinner"></span><span>Start Ingestion</span></button><div id="uploadAlert" class="alert"></div></div></aside>< !-- Main Content Area --><section>< !-- Query Section --><div class="card"><div class="card-header"><span class="card-icon">🔍</span><h2 class="card-title">Intelligent Query</h2></div><div class="mode-selector"><div class="mode-option active" onclick="setMode('all', this)">All Sources</div><div class="mode-option" onclick="setMode('text_only', this)">Text Only</div><div class="mode-option" onclick="setMode('images_only', this)">Images Only</div></div><input type="hidden" id="queryMode" value="all"><div class="form-group"><input type="text" id="queryInput" placeholder="Ask a complex question about the wells..."
+            style="padding: 1rem; font-size: 1.1rem;"
+            onkeypress="if(event.key === 'Enter') queryDatabase()"></div><button class="btn btn-primary" id="queryBtn" onclick="queryDatabase()"><span class="spinner" id="querySpinner"></span><span>Run Analysis</span></button><div id="queryAlert" class="alert"></div></div>< !-- Results Section --><div id="resultsArea" class="results-area"><div id="answerContainer"></div><h3 style="font-family: var(--font-heading); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><span>📄</span>Retrieved Documents </h3><div id="documentsContainer" class="doc-list"></div>< !-- No Results Message --><div id="noResultsMessage"
+            style="display: none; text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-dark); border-radius: 0.75rem; margin-top: 1rem;"><div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div><div style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">No Documents Found</div><div style="font-size: 0.875rem;">Try a different query or check if the well data has been indexed. </div></div></div></section></main><script> // --- State & Init ---
+            let selectedFiles=[];
+
+            window.onload=()=> {
+                loadStatus();
+                setupDragDrop();
+            }
+
+            ;
+
+            // --- UI Logic ---
+            let uploadMode='folder'; // 'folder' or 'files'
+
+            function setMode(mode, element) {
+                document.getElementById('queryMode').value=mode;
+                // Only clear active state for mode options in the same container
+                const container=element.parentElement;
+                container.querySelectorAll('.mode-option').forEach(el=> el.classList.remove('active'));
+                element.classList.add('active');
+            }
+
+            function setUploadMode(mode) {
+                uploadMode=mode;
+                const input=document.getElementById('fileInput');
+                const folderBtn=document.getElementById('folderModeBtn');
+                const filesBtn=document.getElementById('filesModeBtn');
+                const title=document.getElementById('uploadZoneTitle');
+                const subtitle=document.getElementById('uploadZoneSubtitle');
+
+                if (mode==='folder') {
+                    input.setAttribute('webkitdirectory', '');
+                    input.setAttribute('directory', '');
+                    folderBtn.classList.add('active');
+                    folderBtn.style.background='var(--bg-card)';
+                    folderBtn.style.color='var(--text-main)';
+                    folderBtn.style.boxShadow='0 2px 4px rgba(0,0,0,0.2)';
+                    folderBtn.style.fontWeight='500';
+                    filesBtn.classList.remove('active');
+                    filesBtn.style.background='transparent';
+                    filesBtn.style.color='var(--text-muted)';
+                    filesBtn.style.boxShadow='none';
+                    filesBtn.style.fontWeight='400';
+                    title.textContent='Select Well Folder';
+                    subtitle.textContent='Click to browse folders';
+                }
+
+                else {
+                    input.removeAttribute('webkitdirectory');
+                    input.removeAttribute('directory');
+                    filesBtn.classList.add('active');
+                    filesBtn.style.background='var(--bg-card)';
+                    filesBtn.style.color='var(--text-main)';
+                    filesBtn.style.boxShadow='0 2px 4px rgba(0,0,0,0.2)';
+                    filesBtn.style.fontWeight='500';
+                    folderBtn.classList.remove('active');
+                    folderBtn.style.background='transparent';
+                    folderBtn.style.color='var(--text-muted)';
+                    folderBtn.style.boxShadow='none';
+                    folderBtn.style.fontWeight='400';
+                    title.textContent='Drop files here';
+                    subtitle.textContent='PDF, XLSX, TXT, Images';
+                }
+            }
+
+            function setupDragDrop() {
+                const zone=document.getElementById('uploadZone');
+                const input=document.getElementById('fileInput');
+
+                zone.onclick=()=>input.click();
+
+                input.onchange=(e)=>handleFiles(e.target.files);
+
+                zone.ondragover=(e)=> {
+                    e.preventDefault();
+                    zone.classList.add('dragover');
+                }
+
+                ;
+
+                zone.ondragleave=()=>zone.classList.remove('dragover');
+
+                zone.ondrop=(e)=> {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    handleFiles(e.dataTransfer.files);
+                }
+
+                ;
+            }
+
+            function handleFiles(files) {
+                selectedFiles=Array.from(files);
+                const label=document.getElementById('selectedFiles');
+                const wellNameInput=document.getElementById('wellName');
+
+                if (selectedFiles.length > 0) {
+                    label.style.display='block';
+
+                    label.textContent=`$ {
+                        selectedFiles.length
+                    }
+
+                    file(s) ready to upload`;
+                    label.style.color='var(--success)';
+
+                    // Auto-populate well name from folder if in folder mode
+                    if (uploadMode==='folder' && selectedFiles[0].webkitRelativePath) {
+                        const folderName=selectedFiles[0].webkitRelativePath.split('/')[0];
+
+                        if ( !wellNameInput.value) {
+                            wellNameInput.value=folderName;
+                        }
+
+                        label.textContent=`📁 $ {
+                            folderName
+                        }
+
+                        : $ {
+                            selectedFiles.length
+                        }
+
+                        file(s)`;
+                    }
+                }
+            }
+
+            function showAlert(id, msg, type) {
+                const el=document.getElementById(id);
+
+                el.className=`alert alert-$ {
+                    type
+                }
+
+                `;
+                el.textContent=msg;
+                el.style.display='block';
+                setTimeout(()=> el.style.display='none', 5000);
+            }
+
+            function toggleLoading(btnId, spinnerId, isLoading) {
+                const btn=document.getElementById(btnId);
+                const spinner=document.getElementById(spinnerId);
+                btn.disabled=isLoading;
+                spinner.style.display=isLoading ? 'inline-block': 'none';
+            }
+
+            // --- API Calls ---
+            async function loadStatus() {
+                try {
+                    const res=await fetch('/api/status');
+                    const data=await res.json();
+
+                    if (data.success) {
+                        document.getElementById('totalWells').textContent=data.total_wells;
+                        document.getElementById('totalChunks').textContent=data.total_chunks;
+                        document.getElementById('geminiStatus').textContent=data.gemini_available ? 'ON': 'OFF';
+
+                        if (data.image_stats) {
+                            document.getElementById('imageChunks').textContent=data.image_stats.image_chunks;
+                        }
+                    }
+                }
+
+                catch (e) {
+                    console.error(e);
+                }
+            }
+
+            async function uploadWell() {
+                const name=document.getElementById('wellName').value.trim();
+                if ( !name) return showAlert('uploadAlert', 'Please enter a well name', 'error');
+                if (selectedFiles.length===0) return showAlert('uploadAlert', 'No files selected', 'error');
+
+                toggleLoading('uploadBtn', 'uploadSpinner', true);
+
+                const formData=new FormData();
+                formData.append('well_name', name);
+                selectedFiles.forEach(f=> formData.append('files', f));
+
+                try {
+                    const res=await fetch('/api/upload-well', {
+                        method: 'POST', body: formData
+                    });
+                const data=await res.json();
+
+                if (data.success) {
+                    showAlert('uploadAlert', `Success ! Indexed $ {
+                            data.chunks_created
+                        }
+
+                        chunks.`, 'success');
+                    loadStatus();
+                    selectedFiles=[];
+                    document.getElementById('selectedFiles').style.display='none';
+                    document.getElementById('wellName').value='';
+                }
+
+                else {
+                    showAlert('uploadAlert', data.error || 'Upload failed', 'error');
+                }
+            }
+
+            catch (e) {
+                showAlert('uploadAlert', e.message, 'error');
+            }
+
+            finally {
+                toggleLoading('uploadBtn', 'uploadSpinner', false);
+            }
+        }
+
+        async function queryDatabase() {
+            const query=document.getElementById('queryInput').value.trim();
+            const mode=document.getElementById('queryMode').value;
+
+            if ( !query) return showAlert('queryAlert', 'Please enter a question', 'error');
+
+            toggleLoading('queryBtn', 'querySpinner', true);
+            document.getElementById('resultsArea').style.display='none';
+
+            try {
+                const res=await fetch('/api/query', {
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                    ,
+                    body: JSON.stringify({
+                        query, query_mode: mode
+                    })
+            });
+        const data=await res.json();
+
+        if (data.success) {
+            renderResults(data);
+        }
+
+        else {
+            showAlert('queryAlert', data.error || 'Query failed', 'error');
+        }
+        }
+
+        catch (e) {
+            showAlert('queryAlert', e.message, 'error');
+        }
+
+        finally {
+            toggleLoading('queryBtn', 'querySpinner', false);
+        }
+        }
+
+        function renderResults(data) {
+            const area=document.getElementById('resultsArea');
+            const ansContainer=document.getElementById('answerContainer');
+            const docContainer=document.getElementById('documentsContainer');
+
+            area.style.display='block';
+
+            // Answer
+            if (data.has_answer && data.answer) {
+                let badge='';
+
+                if (data.borehole_used) {
+                    badge=`<span class="borehole-badge">Priority: $ {
+                        data.borehole_used
+                    }
+
+                    </span>`;
+                }
+
+                ansContainer.innerHTML=` <div class="answer-card"><div class="answer-header"><div class="answer-title"><span>🤖</span>AI Analysis</div>$ {
+                    badge
+                }
+
+                </div><div class="answer-content">$ {
+                    data.answer.replace(/\n/g, '<br>')
+                }
+
+                </div></div>`;
+            }
+
+            else {
+                ansContainer.innerHTML='';
+            }
+
+            // Documents
+            if (data.documents && data.documents.length > 0) {
+                docContainer.innerHTML=data.documents.map(doc=> ` <div class="doc-item" > <div class="doc-rank" >$ {
+                        doc.rank
+                    }
+
+                    </div> <div class="doc-content" > <div class="doc-meta" > <span class="doc-filename" > $ {
+                        doc.filename
+                    }
+
+                    $ {
+                        doc.is_from_image ? '<span class="image-tag">OCR IMAGE</span>' : ''
+                    }
+
+                    </span> <span class="doc-score" >$ {
+                        (doc.similarity * 100).toFixed(1)
+                    }
+
+                    % Match</span> </div> <div class="doc-snippet" >$ {
+                        doc.preview
+                    }
+
+                    </div> <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;" > Source: $ {
+                        doc.well
+                    }
+
+                    | Priority: $ {
+                        doc.borehole_priority
+                    }
+
+                    </div> </div> </div> `).join('');
+            }
+
+            else {
+                docContainer.innerHTML='<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No relevant documents found.</div>';
+            }
+        }
+
+        </script></body></html>

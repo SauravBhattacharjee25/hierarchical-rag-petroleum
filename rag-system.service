@@ -1,0 +1,18 @@
+[Unit]
+Description=Hierarchical RAG System - Petroleum Well Data Analysis
+After=network.target
+
+[Service]
+Type=notify
+User=codespace
+WorkingDirectory=/workspaces/hierarchical-rag-petroleum
+ExecStart=/usr/bin/python3 -m waitress --port=8000 --host=0.0.0.0 --threads=4 wsgi:app
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment="PYTHONUNBUFFERED=1"
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

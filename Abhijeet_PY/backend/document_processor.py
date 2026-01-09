@@ -1,0 +1,539 @@
+"""
+Document Processing Module
+Handles extraction and chunking of various file types from well folders
+"""
+
+import os
+from pathlib import Path
+from typing import List, Dict, Tuple
+import PyPDF2
+from docx import Document
+import openpyxl
+
+from backend import config
+
+
+# ============================================================================
+# File Type Extraction Functions
+# ============================================================================
+
+def extract_text_from_pdf(filepath: str) -> str:
+    """
+    Extract text content from PDF file
+    
+    Args:
+        filepath: Path to PDF file
+        
+    Returns:
+        Extracted text as string
+    """
+    try:
+        text = ""
+        with open(filepath, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            for page_num, page in enumerate(pdf_reader.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + " "
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ PDF: {Path(filepath).name} ({len(text)} chars)")
+        
+        return text.strip()
+    
+    except Exception as e:
+        print(f"  ✗ Error extracting PDF {filepath}: {e}")
+        return ""
+
+
+def extract_text_from_docx(filepath: str) -> str:
+    """
+    Extract text content from DOCX file
+    
+    Args:
+        filepath: Path to DOCX file
+        
+    Returns:
+        Extracted text as string
+    """
+    try:
+        doc = Document(filepath)
+        text = ""
+        
+        # Extract paragraphs
+        for para in doc.paragraphs:
+            text += para.text + "\n"
+        
+        # Extract tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    text += cell.text + " "
+                text += "\n"
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ DOCX: {Path(filepath).name} ({len(text)} chars)")
+        
+        return text.strip()
+    
+    except Exception as e:
+        print(f"  ✗ Error extracting DOCX {filepath}: {e}")
+        return ""
+
+
+def extract_text_from_txt(filepath: str) -> str:
+    """
+    Extract text content from TXT file
+    
+    Args:
+        filepath: Path to TXT file
+        
+    Returns:
+        Extracted text as string
+    """
+    try:
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as file:
+            text = file.read()
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ TXT: {Path(filepath).name} ({len(text)} chars)")
+        
+        return text.strip()
+    
+    except Exception as e:
+        print(f"  ✗ Error extracting TXT {filepath}: {e}")
+        return ""
+
+
+def extract_text_from_xlsx(filepath: str) -> str:
+    """
+    Extract text content from XLSX file (metadata + visible data)
+    
+    Args:
+        filepath: Path to XLSX file
+        
+    Returns:
+        Extracted text as string (sheet names, headers, some data)
+    """
+    try:
+        workbook = openpyxl.load_workbook(filepath, data_only=True)
+        text = f"Excel file: {Path(filepath).name}\n\n"
+        
+        for sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+            text += f"Sheet: {sheet_name}\n"
+            
+            # Extract first 20 rows for context (to avoid huge files)
+            max_rows = min(20, sheet.max_row)
+            for row_idx, row in enumerate(sheet.iter_rows(max_row=max_rows, values_only=True), 1):
+                row_text = " | ".join([str(cell) if cell is not None else "" for cell in row])
+                if row_text.strip():
+                    text += row_text + "\n"
+            
+            text += "\n"
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ XLSX: {Path(filepath).name} ({len(text)} chars)")
+        
+        return text.strip()
+    
+    except Exception as e:
+        print(f"  ✗ Error extracting XLSX {filepath}: {e}")
+        return ""
+
+
+def extract_text_from_image(filepath: str) -> str:
+    """
+    Extract text from image file using OCR (Tesseract)
+    
+    Args:
+        filepath: Path to image file
+        
+    Returns:
+        Extracted text as string
+    """
+    if not config.ENABLE_IMAGE_OCR:
+        return ""
+    
+    try:
+        from PIL import Image
+        import pytesseract
+        
+        # Check if Tesseract is available
+        if not config.TESSERACT_PATH:
+            if config.DEBUG_MODE:
+                print("  ⚠️  Tesseract OCR not found - skipping image processing")
+                print("     Install from: https://github.com/UB-Mannheim/tesseract/wiki")
+            return ""
+        
+        # Set Tesseract path
+        pytesseract.pytesseract.tesseract_cmd = config.TESSERACT_PATH
+        
+        # Verify Tesseract is working
+        try:
+            pytesseract.get_tesseract_version()
+        except Exception as e:
+            if config.DEBUG_MODE:
+                print(f"  ⚠️  Tesseract not accessible: {e}")
+                print(f"     Path checked: {config.TESSERACT_PATH}")
+            return ""
+        
+        # Open image
+        image = Image.open(filepath)
+        
+        # Check minimum size
+        if image.width < config.MIN_IMAGE_WIDTH or image.height < config.MIN_IMAGE_HEIGHT:
+            if config.DEBUG_MODE:
+                print(f"  ⊘ Image too small: {Path(filepath).name} ({image.width}x{image.height})")
+            return ""
+        
+        # Perform OCR
+        text = pytesseract.image_to_string(image, lang=config.OCR_LANGUAGE)
+        
+        if config.DEBUG_MODE:
+            print(f"  ✓ IMAGE OCR: {Path(filepath).name} ({len(text)} chars extracted)")
+        
+        return text.strip()
+    
+    except ImportError as e:
+        if config.DEBUG_MODE:
+            print(f"  ⚠️  OCR library not available: {e}")
+            print("     Install with: pip install pytesseract")
+        return ""
+    
+    except Exception as e:
+        print(f"  ✗ Error extracting image {filepath}: {e}")
+        return ""
+
+
+def extract_images_from_pdf(filepath: str) -> str:
+    """
+    Extract images from PDF and perform OCR on them
+    
+    Args:
+        filepath: Path to PDF file
+        
+    Returns:
+        Combined text extracted from all images in PDF
+    """
+    if not config.ENABLE_PDF_IMAGE_EXTRACTION or not config.ENABLE_IMAGE_OCR:
+        return ""
+    
+    try:
+        from PIL import Image
+        import pytesseract
+        import io
+        
+        # Set Tesseract path if specified
+        if config.TESSERACT_PATH:
+            pytesseract.pytesseract.tesseract_cmd = config.TESSERACT_PATH
+        
+        combined_text = ""
+        
+        with open(filepath, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            
+            for page_num, page in enumerate(pdf_reader.pages):
+                # Try to extract images from page
+                if '/XObject' in page['/Resources']:
+                    xObject = page['/Resources']['/XObject'].get_object()
+                    
+                    for obj in xObject:
+                        if xObject[obj]['/Subtype'] == '/Image':
+                            try:
+                                # Extract image data
+                                size = (xObject[obj]['/Width'], xObject[obj]['/Height'])
+                                
+                                # Skip small images
+                                if size[0] < config.MIN_IMAGE_WIDTH or size[1] < config.MIN_IMAGE_HEIGHT:
+                                    continue
+                                
+                                data = xObject[obj].get_data()
+                                
+                                # Try to create image
+                                try:
+                                    image = Image.open(io.BytesIO(data))
+                                    
+                                    # Perform OCR
+                                    text = pytesseract.image_to_string(image, lang=config.OCR_LANGUAGE)
+                                    
+                                    if text.strip():
+                                        combined_text += f"\n[Image from page {page_num + 1}]\n{text}\n"
+                                        
+                                except Exception as img_error:
+                                    # Skip images that can't be processed
+                                    continue
+                                    
+                            except Exception as obj_error:
+                                continue
+        
+        if config.DEBUG_MODE and combined_text:
+            print(f"  ✓ PDF Images: Extracted {len(combined_text)} chars from images in {Path(filepath).name}")
+        
+        return combined_text.strip()
+    
+    except Exception as e:
+        if config.DEBUG_MODE:
+            print(f"  ⊘ Could not extract images from PDF {filepath}: {e}")
+        return ""
+
+
+def extract_text_from_file(filepath: str) -> str:
+    """
+    Extract text from any supported file type
+    
+    Args:
+        filepath: Path to file
+        
+    Returns:
+        Extracted text as string
+    """
+    file_ext = Path(filepath).suffix.lower()
+    
+    if file_ext == '.pdf':
+        return extract_text_from_pdf(filepath)
+    elif file_ext == '.docx':
+        return extract_text_from_docx(filepath)
+    elif file_ext == '.txt':
+        return extract_text_from_txt(filepath)
+    elif file_ext == '.xlsx':
+        return extract_text_from_xlsx(filepath)
+    elif file_ext in config.IMAGE_EXTENSIONS:
+        return extract_text_from_image(filepath)
+    else:
+        if config.DEBUG_MODE:
+            print(f"  ⊘ Unsupported file type: {filepath}")
+        return ""
+
+
+def chunk_text(text: str, chunk_size: int = None, overlap: int = None) -> List[str]:
+    """
+    Split text into overlapping chunks for better retrieval
+    
+    Args:
+        text: Text to chunk
+        chunk_size: Size of each chunk in characters (default from config)
+        overlap: Overlap between chunks in characters (default from config)
+        
+    Returns:
+        List of text chunks
+    """
+    if chunk_size is None:
+        chunk_size = config.CHUNK_SIZE
+    if overlap is None:
+        overlap = config.CHUNK_OVERLAP
+    
+    # If text is smaller than chunk size, return as single chunk
+    if len(text) <= chunk_size:
+        return [text]
+    
+    chunks = []
+    start = 0
+    
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        
+        # Try to break at sentence boundary if possible
+        if end < len(text):
+            # Look for sentence endings within last 100 chars
+            last_period = chunk.rfind('.')
+            last_newline = chunk.rfind('\n')
+            break_point = max(last_period, last_newline)
+            
+            if break_point > chunk_size - 100:  # Found reasonable break point
+                chunk = text[start:start + break_point + 1]
+                end = start + break_point + 1
+        
+        chunks.append(chunk.strip())
+        start = end - overlap  # Move forward with overlap
+    
+    return chunks
+
+
+# ============================================================================
+# Well Folder Processing
+# ============================================================================
+
+class DocumentChunk:
+    """Represents a chunk of text with metadata"""
+    
+    def __init__(self, text: str, well_name: str, filepath: str, 
+                 chunk_idx: int = 0, total_chunks: int = 1, 
+                 is_from_image: bool = False, image_metadata: Dict = None):
+        self.text = text
+        self.well_name = well_name
+        self.filepath = filepath
+        self.filename = Path(filepath).name
+        self.file_extension = Path(filepath).suffix
+        self.chunk_idx = chunk_idx
+        self.total_chunks = total_chunks
+        self.is_from_image = is_from_image
+        self.image_metadata = image_metadata or {}
+        self.embedding = None  # Will be populated later
+    
+    def __repr__(self):
+        return f"DocumentChunk(well={self.well_name}, file={self.filename}, chunk={self.chunk_idx+1}/{self.total_chunks})"
+
+
+class WellData:
+    """Represents all data for a single well"""
+    
+    def __init__(self, well_name: str, well_path: str):
+        self.well_name = well_name
+        self.well_path = well_path
+        self.documents: List[DocumentChunk] = []
+    
+    def add_document_chunks(self, chunks: List[DocumentChunk]):
+        """Add document chunks to this well"""
+        self.documents.extend(chunks)
+    
+    def __repr__(self):
+        return f"WellData(name={self.well_name}, documents={len(self.documents)})"
+
+
+def process_well_folder(well_path: str) -> WellData:
+    """
+    Process a well folder and extract all documents with chunks
+    
+    Args:
+        well_path: Path to well folder
+        
+    Returns:
+        WellData object containing all processed documents
+    """
+    well_name = Path(well_path).name
+    well_data = WellData(well_name, well_path)
+    
+    print(f"\n📁 Processing Well: {well_name}")
+    print(f"   Path: {well_path}")
+    
+    # Recursively find all supported files
+    file_count = 0
+    chunk_count = 0
+    
+    for root, dirs, files in os.walk(well_path):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            file_ext = Path(filepath).suffix.lower()
+            
+            # Check if supported extension
+            if file_ext not in config.SUPPORTED_EXTENSIONS:
+                continue
+            
+            # Check file size
+            try:
+                file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
+                if file_size_mb > config.MAX_FILE_SIZE_MB:
+                    print(f"  ⊘ Skipping large file: {filename} ({file_size_mb:.1f} MB)")
+                    continue
+            except:
+                continue
+            
+            # Extract text based on file type
+            file_chunks = []
+            
+            # 1. Handle Image Files
+            if file_ext in config.IMAGE_EXTENSIONS:
+                text = extract_text_from_image(filepath)
+                if text and len(text.strip()) >= 10:
+                    chunks = chunk_text(text)
+                    for idx, chunk in enumerate(chunks):
+                        file_chunks.append(DocumentChunk(
+                            text=chunk,
+                            well_name=well_name,
+                            filepath=filepath,
+                            chunk_idx=idx,
+                            total_chunks=len(chunks),
+                            is_from_image=True,
+                            image_metadata={'source': 'image_file'}
+                        ))
+            
+            # 2. Handle PDF Files (Text + Images)
+            elif file_ext == '.pdf':
+                # Extract regular text
+                text = extract_text_from_pdf(filepath)
+                if text and len(text.strip()) >= 50:
+                    chunks = chunk_text(text)
+                    for idx, chunk in enumerate(chunks):
+                        file_chunks.append(DocumentChunk(
+                            text=chunk,
+                            well_name=well_name,
+                            filepath=filepath,
+                            chunk_idx=idx,
+                            total_chunks=len(chunks),
+                            is_from_image=False
+                        ))
+                
+                # Extract images from PDF
+                if config.ENABLE_PDF_IMAGE_EXTRACTION:
+                    image_text = extract_images_from_pdf(filepath)
+                    if image_text and len(image_text.strip()) >= 10:
+                        img_chunks = chunk_text(image_text)
+                        for idx, chunk in enumerate(img_chunks):
+                            file_chunks.append(DocumentChunk(
+                                text=chunk,
+                                well_name=well_name,
+                                filepath=filepath,
+                                chunk_idx=idx + (len(chunks) if 'chunks' in locals() else 0),
+                                total_chunks=len(img_chunks),
+                                is_from_image=True,
+                                image_metadata={'source': 'pdf_embedded'}
+                            ))
+            
+            # 3. Handle Other Files
+            else:
+                text = extract_text_from_file(filepath)
+                if text and len(text.strip()) >= 50:
+                    chunks = chunk_text(text)
+                    for idx, chunk in enumerate(chunks):
+                        file_chunks.append(DocumentChunk(
+                            text=chunk,
+                            well_name=well_name,
+                            filepath=filepath,
+                            chunk_idx=idx,
+                            total_chunks=len(chunks),
+                            is_from_image=False
+                        ))
+            
+            if file_chunks:
+                well_data.add_document_chunks(file_chunks)
+                file_count += 1
+                chunk_count += len(file_chunks)
+    
+    print(f"   ✅ Processed {file_count} files → {chunk_count} chunks")
+    
+    return well_data
+
+
+def process_multiple_wells(well_paths: List[str]) -> List[WellData]:
+    """
+    Process multiple well folders
+    
+    Args:
+        well_paths: List of paths to well folders
+        
+    Returns:
+        List of WellData objects
+    """
+    print("=" * 70)
+    print("📚 Processing Multiple Wells")
+    print("=" * 70)
+    
+    all_wells = []
+    
+    for well_path in well_paths:
+        if not os.path.exists(well_path):
+            print(f"\n⚠️  Well folder not found: {well_path}")
+            continue
+        
+        well_data = process_well_folder(well_path)
+        all_wells.append(well_data)
+    
+    print("\n" + "=" * 70)
+    print(f"✅ Total Wells Processed: {len(all_wells)}")
+    total_documents = sum(len(well.documents) for well in all_wells)
+    print(f"✅ Total Document Chunks: {total_documents}")
+    print("=" * 70 + "\n")
+    
+    return all_wells
